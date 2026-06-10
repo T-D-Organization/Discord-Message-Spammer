@@ -77,8 +77,13 @@ T-D Organistaion (Team Dark)
 git clone https://github.com/more-dark/Discord-Message-Spammer.git
 cd Discord-Message-Spammer
 ```
+### For Windows
 ```bash
-pip install -r requirements.txt
+python -m pip install requests
+```
+### For Linux
+```bash
+pip install requests
 ```
 ```bash
 python messager.py
