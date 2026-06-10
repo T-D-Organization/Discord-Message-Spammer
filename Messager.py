@@ -2,8 +2,10 @@ import requests
 import time
 import os
 import json
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
-CONFIG_FILE = "token.txt"
+CONFIG_FILE = "accounts.json"
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -19,8 +21,8 @@ def print_banner():
     ║   ██║ ╚═╝ ██║███████╗███████║███████║██║  ██║╚██████╔╝███████╗ ██║  ██║ 
     ║   ╚═╝     ╚═╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝ ╚══════╝ 
     ║                                                                        ║
-    ║            Discord Message Auto-Sender By T-D Organisation             ║
-    ║                         v2.0 | Self-Bot                                ║
+    ║         Discord Message Auto-Sender - Multiple Accounts Support        ║
+    ║                    v2.0 | Self-Bot | T-D Organisation                  ║
     ╚════════════════════════════════════════════════════════════════════════╝
     """
     print(banner)
@@ -43,84 +45,98 @@ def print_status(status, message):
         print(f"  │  {message}")
         print(f"  └──────────────────────────────────────────────────┘")
 
-def save_config(token, channel_id):
-    config = {
-        "token": token,
-        "channel_id": channel_id
-    }
+def save_accounts(accounts):
     with open(CONFIG_FILE, 'w') as f:
-        json.dump(config, f)
-    print_status("success", f"Config saved to {CONFIG_FILE}")
+        json.dump(accounts, f, indent=4)
+    print_status("success", f"{len(accounts)} accounts saved to {CONFIG_FILE}")
 
-def load_config():
+def load_accounts():
     if os.path.exists(CONFIG_FILE):
         try:
             with open(CONFIG_FILE, 'r') as f:
-                config = json.load(f)
-                return config.get("token", ""), config.get("channel_id", "")
+                accounts = json.load(f)
+                return accounts if isinstance(accounts, list) else []
         except:
-            return "", ""
-    return "", ""
+            return []
+    return []
 
-def get_token_and_channel():
+def get_multiple_accounts():
     clear_screen()
     print_banner()
     
-    # Check if config exists
-    saved_token, saved_channel = load_config()
+    # Check if saved accounts exist
+    saved_accounts = load_accounts()
     
-    if saved_token and saved_channel:
+    if saved_accounts and len(saved_accounts) > 0:
         print("\n" + "═" * 60)
-        print_status("info", "Previous config found in token.txt")
-        print(f"\n  Token: {saved_token[:20]}...{saved_token[-10:]}")
-        print(f"  Channel ID: {saved_channel}")
+        print_status("info", f"Found {len(saved_accounts)} saved account(s) in accounts.json")
         print("\n  ╭─[OPTIONS]────────────────────────────────────╮")
-        print("  │  1. Use saved config                         │")
-        print("  │  2. Enter new config                         │")
+        print("  │  1. Use saved accounts                       │")
+        print("  │  2. Enter new accounts                       │")
+        print("  │  3. Add more accounts to existing            │")
         print("  ╰──────────────────────────────────────────────╯")
         
-        choice = input("\n  ╰─➤ Choose (1/2): ")
+        choice = input("\n  ╰─➤ Choose (1/2/3): ")
         if choice == '1':
-            return saved_token, saved_channel
-    
-    # Get new credentials
-    print("\n" + "═" * 60)
-    print("\n  ╭─[🔐 DISCORD CREDENTIALS]────────────────────────╮")
-    print("  │  Please enter your Discord credentials:         │")
-    print("  ╰─────────────────────────────────────────────────╯")
-    
-    # Token input
-    while True:
-        token = input("\n  🔑 Enter your Discord User Token: ").strip()
-        if token:
-            # Basic validation
-            if len(token) > 50 and '.' in token:
-                print_status("success", "Token accepted!")
-                break
-            else:
-                print_status("warning", "Token looks invalid! Still saving but may not work.")
-                break
+            return saved_accounts
+        elif choice == '3':
+            accounts = saved_accounts
         else:
-            print_status("error", "Token cannot be empty!")
+            accounts = []
+    else:
+        accounts = []
     
-    # Channel ID input
+    # Get number of accounts
+    print("\n" + "═" * 60)
     while True:
         try:
-            channel_id = input("\n  📢 Enter Channel ID: ").strip()
-            if channel_id:
-                # Convert to int to validate
-                int(channel_id)
-                print_status("success", "Channel ID accepted!")
+            num_accounts = int(input("\n  🔢 How many Discord accounts do you want to use? "))
+            if num_accounts > 0:
                 break
             else:
-                print_status("error", "Channel ID cannot be empty!")
+                print("  ❌ Please enter at least 1 account!")
         except ValueError:
-            print_status("error", "Invalid Channel ID! Must be numbers only.")
+            print("  ❌ Please enter a valid number!")
     
-    # Save config
-    save_config(token, channel_id)
+    # Get credentials for each account
+    for i in range(num_accounts):
+        print("\n" + "═" * 60)
+        print(f"\n  ╭─[👤 ACCOUNT {i+1} OF {num_accounts}]──────────────────────────────╮")
+        print("  │  Please enter credentials for this account:      │")
+        print("  ╰──────────────────────────────────────────────────╯")
+        
+        # Token input
+        while True:
+            token = input(f"\n  🔑 Account {i+1} Token: ").strip()
+            if token:
+                break
+            else:
+                print_status("error", "Token cannot be empty!")
+        
+        # Channel ID input
+        while True:
+            try:
+                channel_id = input(f"\n  📢 Account {i+1} Channel ID: ").strip()
+                if channel_id:
+                    int(channel_id)  # Validate
+                    break
+                else:
+                    print_status("error", "Channel ID cannot be empty!")
+            except ValueError:
+                print_status("error", "Invalid Channel ID! Must be numbers only.")
+        
+        accounts.append({
+            "token": token,
+            "channel_id": channel_id,
+            "enabled": True
+        })
+        print_status("success", f"Account {i+1} added successfully!")
     
-    return token, channel_id
+    # Save accounts
+    if accounts:
+        save_accounts(accounts)
+    
+    return accounts
 
 def send_message(token, channel_id, message):
     url = f"https://discord.com/api/v9/channels/{channel_id}/messages"
@@ -133,22 +149,240 @@ def send_message(token, channel_id, message):
         "nonce": str(int(time.time() * 1000)),
         "tts": False
     }
-    response = requests.post(url, headers=headers, json=data)
-    return response
+    try:
+        response = requests.post(url, headers=headers, json=data, timeout=10)
+        return response
+    except requests.exceptions.RequestException as e:
+        return None
+
+def send_message_for_account(account, message, account_index, stats, interval, spam_count, messages, mode):
+    """Send message for a single account"""
+    token = account["token"]
+    channel_id = account["channel_id"]
+    
+    # Select message based on mode
+    if mode == '1':
+        current_msg = messages[0]
+    else:
+        current_msg = messages[stats['count'] % len(messages)]
+    
+    response = send_message(token, channel_id, current_msg)
+    timestamp = time.strftime("%H:%M:%S")
+    
+    if response and response.status_code == 200:
+        stats['success'] += 1
+        print(f"  [ACC{account_index+1}] {timestamp} ✅ {current_msg[:35]}...")
+        return True
+    elif response and response.status_code == 401:
+        print(f"  [ACC{account_index+1}] {timestamp} ❌ Token invalid!")
+        account['enabled'] = False
+        return False
+    elif response and response.status_code == 403:
+        print(f"  [ACC{account_index+1}] {timestamp} ❌ Permission denied!")
+        account['enabled'] = False
+        return False
+    elif response and response.status_code == 429:
+        print(f"  [ACC{account_index+1}] {timestamp} ⚠️ Rate limit! Skipping...")
+        return False
+    else:
+        stats['error'] += 1
+        print(f"  [ACC{account_index+1}] {timestamp} ❌ Error: {response.status_code if response else 'No response'}")
+        return False
+
+def send_messages_round_robin(accounts, messages, interval, spam_count, mode):
+    """Send messages in round-robin fashion across all accounts"""
+    
+    # Filter enabled accounts
+    enabled_accounts = [acc for acc in accounts if acc.get('enabled', True)]
+    
+    if not enabled_accounts:
+        print_status("error", "No enabled accounts found!")
+        return
+    
+    print_status("info", f"Starting spam with {len(enabled_accounts)} accounts in round-robin mode")
+    print_status("info", f"Each account will send messages in sequence")
+    print_status("info", "Stop karne ke liye Ctrl+C press karo")
+    
+    print("\n  🚀 STARTING MULTI-ACCOUNT SPAMMER IN 3 SECONDS...")
+    for i in range(3, 0, -1):
+        print(f"  {i}...")
+        time.sleep(1)
+    
+    total_sent = 0
+    round_num = 0
+    message_index = 0
+    
+    try:
+        while True:
+            # Check if we've reached the limit
+            if spam_count > 0 and total_sent >= spam_count:
+                print("\n" + "═" * 60)
+                print_status("success", f"✅ Spam complete! Total messages sent: {total_sent}")
+                break
+            
+            round_num += 1
+            print(f"\n  ┌─[ROUND {round_num}]─────────────────────────────────────┐")
+            
+            # Send one message from each account
+            for idx, account in enumerate(enabled_accounts):
+                # Select message based on mode
+                if mode == '1':
+                    current_msg = messages[0]
+                else:
+                    current_msg = messages[message_index % len(messages)]
+                
+                response = send_message(account["token"], account["channel_id"], current_msg)
+                timestamp = time.strftime("%H:%M:%S")
+                
+                if response and response.status_code == 200:
+                    total_sent += 1
+                    print(f"  │  [ACC{idx+1}] {timestamp} ✅ {current_msg[:35]}...")
+                elif response and response.status_code == 401:
+                    print(f"  │  [ACC{idx+1}] {timestamp} ❌ Token invalid - Disabling account")
+                    account['enabled'] = False
+                elif response and response.status_code == 403:
+                    print(f"  │  [ACC{idx+1}] {timestamp} ❌ Permission denied - Disabling account")
+                    account['enabled'] = False
+                elif response and response.status_code == 429:
+                    print(f"  │  [ACC{idx+1}] {timestamp} ⚠️ Rate limit!")
+                else:
+                    print(f"  │  [ACC{idx+1}] {timestamp} ❌ Error: {response.status_code if response else 'No response'}")
+                
+                # Small delay between accounts to avoid rate limiting
+                time.sleep(0.5)
+                
+                # Update message index for next round
+                if mode != '1':
+                    message_index += 1
+            
+            # Remove disabled accounts
+            enabled_accounts = [acc for acc in enabled_accounts if acc.get('enabled', True)]
+            
+            if not enabled_accounts:
+                print_status("error", "All accounts disabled due to errors!")
+                break
+            
+            print(f"  └─────────────────────────────────────────────────────┘")
+            print(f"  📊 Total sent so far: {total_sent} | Active accounts: {len(enabled_accounts)}")
+            
+            # Wait for next round
+            time.sleep(interval)
+            
+    except KeyboardInterrupt:
+        print("\n\n" + "═" * 60)
+        print_status("info", f"👋 Stopped by user!")
+        print_status("success", f"📊 Total messages sent: {total_sent}")
+        print("═" * 60 + "\n")
+
+def send_messages_parallel(accounts, messages, interval, spam_count, mode):
+    """Send messages in parallel from all accounts simultaneously"""
+    
+    enabled_accounts = [acc for acc in accounts if acc.get('enabled', True)]
+    
+    if not enabled_accounts:
+        print_status("error", "No enabled accounts found!")
+        return
+    
+    print_status("info", f"Starting parallel spam with {len(enabled_accounts)} accounts")
+    print_status("info", f"All accounts will send messages simultaneously")
+    print_status("info", "Stop karne ke liye Ctrl+C press karo")
+    
+    print("\n  🚀 STARTING PARALLEL SPAMMER IN 3 SECONDS...")
+    for i in range(3, 0, -1):
+        print(f"  {i}...")
+        time.sleep(1)
+    
+    total_sent = 0
+    round_num = 0
+    message_index = 0
+    
+    try:
+        while True:
+            if spam_count > 0 and total_sent >= spam_count:
+                print("\n" + "═" * 60)
+                print_status("success", f"✅ Spam complete! Total messages sent: {total_sent}")
+                break
+            
+            round_num += 1
+            print(f"\n  ┌─[ROUND {round_num} - PARALLEL]─────────────────────────┐")
+            
+            # Send messages in parallel using threads
+            def send_for_account(account, idx):
+                nonlocal message_index
+                if mode == '1':
+                    current_msg = messages[0]
+                else:
+                    current_msg = messages[message_index % len(messages)]
+                
+                response = send_message(account["token"], account["channel_id"], current_msg)
+                timestamp = time.strftime("%H:%M:%S")
+                
+                if response and response.status_code == 200:
+                    print(f"  │  [ACC{idx+1}] {timestamp} ✅ {current_msg[:35]}...")
+                    return True
+                elif response and response.status_code == 401:
+                    print(f"  │  [ACC{idx+1}] {timestamp} ❌ Token invalid")
+                    account['enabled'] = False
+                    return False
+                elif response and response.status_code == 403:
+                    print(f"  │  [ACC{idx+1}] {timestamp} ❌ Permission denied")
+                    account['enabled'] = False
+                    return False
+                else:
+                    print(f"  │  [ACC{idx+1}] {timestamp} ❌ Error")
+                    return False
+            
+            # Run all accounts in parallel
+            with ThreadPoolExecutor(max_workers=len(enabled_accounts)) as executor:
+                futures = []
+                for idx, account in enumerate(enabled_accounts):
+                    future = executor.submit(send_for_account, account, idx)
+                    futures.append(future)
+                
+                # Wait for all to complete
+                results = [f.result() for f in futures]
+                round_success = sum(results)
+                total_sent += round_success
+            
+            if mode != '1':
+                message_index += 1
+            
+            # Remove disabled accounts
+            enabled_accounts = [acc for acc in enabled_accounts if acc.get('enabled', True)]
+            
+            if not enabled_accounts:
+                print_status("error", "All accounts disabled due to errors!")
+                break
+            
+            print(f"  └────────────────────────────────────────────────────┘")
+            print(f"  📊 Round {round_num}: {round_success} messages sent | Total: {total_sent}")
+            
+            time.sleep(interval)
+            
+    except KeyboardInterrupt:
+        print("\n\n" + "═" * 60)
+        print_status("info", f"👋 Stopped by user!")
+        print_status("success", f"📊 Total messages sent: {total_sent}")
+        print("═" * 60 + "\n")
 
 def main():
-    # Get token and channel ID from user
-    USER_TOKEN, CHANNEL_ID = get_token_and_channel()
+    # Get multiple accounts
+    accounts = get_multiple_accounts()
+    
+    if not accounts:
+        print_status("error", "No accounts configured! Exiting...")
+        return
     
     clear_screen()
     print_banner()
     
     print_status("warning", "Using Self-Bot is against Discord ToS!")
     print_status("warning", "Account ban ho sakta hai! Risk aapki apni hai.")
+    print_status("info", f"Total accounts loaded: {len(accounts)}")
     
     print("\n" + "═" * 60)
     
-    # Time interval lena (Seconds ya Milliseconds)
+    # Time interval
     while True:
         try:
             print("\n  ╭─[⏱️ TIME INTERVAL SETUP]───────────────────────╮")
@@ -156,23 +390,19 @@ def main():
             print("  │  - 5 = 5 seconds                               │")
             print("  │  - 0.5 = 500 milliseconds                      │")
             print("  │  - 0.1 = 100 milliseconds (Fast spam)          │")
-            print("  │  - 0.05 = 50 milliseconds (Ultra fast)         │")
             print("  ╰────────────────────────────────────────────────╯")
             
-            interval_input = input("\n  ╰─➤ Enter time (seconds): ")
+            interval_input = input("\n  ╰─➤ Enter time between rounds (seconds): ")
             interval = float(interval_input)
             
             if interval <= 0:
                 print("  ❌ Positive number daalo!")
                 continue
             
-            # Display interval
             if interval >= 1:
-                print(f"\n  ✅ Interval set to {interval} seconds")
-                print(f"  📊 That is {interval * 1000} milliseconds")
+                print(f"\n  ✅ Round interval: {interval} seconds")
             else:
-                print(f"\n  ✅ Interval set to {interval} seconds")
-                print(f"  📊 That is {interval * 1000:.0f} milliseconds")
+                print(f"\n  ✅ Round interval: {interval} seconds ({interval * 1000:.0f}ms)")
             print("  ╰──────────────────────────────────────────────────╯")
             break
             
@@ -181,24 +411,38 @@ def main():
     
     print("\n" + "═" * 60)
     
-    # Spam Mode Selection
-    print("\n  ╭─[🎯 SPAM MODE]────────────────────────────╮")
-    print("  │  1. Single Message (Ek hi message)        │")
-    print("  │  2. Multiple Messages (Rotate)            │")
-    print("  │  3. List Messages (Sequential)            │")
-    print("  ╰───────────────────────────────────────────╯")
+    # Multi-Account Mode Selection
+    print("\n  ╭─[👥 MULTI-ACCOUNT MODE]──────────────────────────╮")
+    print("  │  1. Round-Robin (One account after another)      │")
+    print("  │  2. Parallel (All accounts send simultaneously)  │")
+    print("  ╰──────────────────────────────────────────────────╯")
     
     while True:
-        mode = input("\n  ╰─➤ Select mode (1/2/3): ")
-        if mode in ['1', '2', '3']:
+        multi_mode = input("\n  ╰─➤ Select mode (1/2): ")
+        if multi_mode in ['1', '2']:
             break
-        print("  ❌ Invalid choice! Choose 1, 2, or 3")
+        print("  ❌ Invalid choice! Choose 1 or 2")
     
     print("\n" + "═" * 60)
     
+    # Spam Mode Selection
+    print("\n  ╭─[🎯 SPAM MODE]────────────────────────────╮")
+    print("  │  1. Single Message (Ek hi message)        │")
+    print("  │  2. Rotating Messages (Message rotate)    │")
+    print("  ╰───────────────────────────────────────────╯")
+    
+    while True:
+        spam_mode = input("\n  ╰─➤ Select mode (1/2): ")
+        if spam_mode in ['1', '2']:
+            break
+        print("  ❌ Invalid choice! Choose 1 or 2")
+    
+    print("\n" + "═" * 60)
+    
+    # Get messages
     messages = []
     
-    if mode == '1':
+    if spam_mode == '1':
         # Single message
         print("\n  ╭─[📝 SINGLE MESSAGE]────────────────────────╮")
         msg = input("  │  Enter your message: ")
@@ -210,8 +454,8 @@ def main():
             print_status("error", "Message cannot be empty!")
             return
             
-    elif mode == '2':
-        # Multiple messages (Rotate)
+    else:
+        # Multiple messages
         print("\n  ╭─[📝 MULTIPLE MESSAGES]─────────────────────────╮")
         print("  │  Apne messages likho (type 'done' to finish)   │")
         print("  ╰────────────────────────────────────────────────╯")
@@ -229,26 +473,6 @@ def main():
                 print(f"  ✅ Added: {msg[:50]}{'...' if len(msg) > 50 else ''}")
             else:
                 print("  ❌ Empty message not allowed!")
-                
-    elif mode == '3':
-        # Sequential list
-        print("\n  ╭─[📝 SEQUENTIAL MODE]─────────────────────────╮")
-        print("  │  Messages will send in order: 1,2,3,1,2,3... │")
-        print("  ╰──────────────────────────────────────────────╯")
-        
-        while True:
-            msg = input(f"\n  📌 Message {len(messages)+1} (or 'done'): ")
-            if msg.lower() == 'done':
-                if len(messages) > 0:
-                    break
-                else:
-                    print("  ❌ Kam se kam ek message daalo!")
-                    continue
-            if msg.strip():
-                messages.append(msg)
-                print(f"  ✅ Added: {msg[:50]}")
-            else:
-                print("  ❌ Empty message not allowed!")
     
     # Spam Count
     print("\n" + "═" * 60)
@@ -256,12 +480,11 @@ def main():
         try:
             print("\n  ╭─[🔢 SPAM COUNT]────────────────────────────╮")
             print("  │  0 = Infinite spam (until Ctrl+C)          │")
-            print("  │  10 = Send 10 times                        │")
-            print("  │  100 = Send 100 times                      │")
-            print("  │  1000 = Send 1000 times                    │")
+            print("  │  10 = Send 10 rounds                       │")
+            print("  │  100 = Send 100 rounds                     │")
             print("  ╰────────────────────────────────────────────╯")
             
-            spam_count = int(input("\n  ╰─➤ How many messages to send? (0 for infinite): "))
+            spam_count = int(input("\n  ╰─➤ How many rounds to send? (0 for infinite): "))
             if spam_count >= 0:
                 break
             print("  ❌ Enter 0 or positive number!")
@@ -270,99 +493,36 @@ def main():
     
     print("\n" + "═" * 60)
     print_status("success", f"{len(messages)} messages loaded!")
-    print_status("info", f"Interval: {interval} seconds" if interval >= 1 else f"Interval: {interval * 1000:.0f} milliseconds")
-    print_status("info", f"Will send: {'Infinite' if spam_count == 0 else spam_count} messages")
-    print_status("info", "Stop karne ke liye Ctrl+C press karo")
+    print_status("info", f"{len(accounts)} accounts configured!")
+    print_status("info", f"Round interval: {interval} seconds")
+    print_status("info", f"Multi-account mode: {'Round-Robin' if multi_mode == '1' else 'Parallel'}")
+    print_status("info", f"Will send: {'Infinite' if spam_count == 0 else spam_count} rounds")
     
-    # Test connection first
+    # Test connections
     print("\n" + "═" * 60)
-    print("\n  🔍 Testing connection...")
-    test_response = send_message(USER_TOKEN, CHANNEL_ID, "🟢 Spammer connected! Starting in 3 seconds...")
-    if test_response.status_code == 200:
-        print_status("success", "Connection successful!")
-    else:
-        print_status("error", f"Connection failed! Error {test_response.status_code}")
-        print_status("error", "Please check your token and channel ID")
+    print("\n  🔍 Testing connections for all accounts...")
+    
+    active_accounts = []
+    for idx, account in enumerate(accounts):
+        test_response = send_message(account["token"], account["channel_id"], "Make me Stop!")
+        if test_response and test_response.status_code == 200:
+            print(f"  ✅ Account {idx+1}: Connected successfully!")
+            active_accounts.append(account)
+        else:
+            print(f"  ❌ Account {idx+1}: Connection failed!")
+            account['enabled'] = False
+    
+    if not active_accounts:
+        print_status("error", "No working accounts found! Exiting...")
         return
     
-    print("\n  🚀 STARTING SPAMMER IN 3 SECONDS...")
-    for i in range(3, 0, -1):
-        print(f"  {i}...")
-        time.sleep(1)
+    accounts = active_accounts
     
-    count = 0
-    error_count = 0
-    success_count = 0
-    
-    try:
-        while True:
-            # Check if we've reached the limit
-            if spam_count > 0 and count >= spam_count:
-                print("\n" + "═" * 60)
-                print_status("success", f"✅ Spam complete! Sent {success_count} messages")
-                if error_count > 0:
-                    print_status("warning", f"⚠️ Errors: {error_count}")
-                break
-            
-            # Select current message
-            current_msg = messages[count % len(messages)]
-            
-            # Send message with timestamp
-            timestamp = time.strftime("%H:%M:%S")
-            response = send_message(USER_TOKEN, CHANNEL_ID, current_msg)
-            
-            # Progress calculation
-            if spam_count > 0:
-                percentage = (count / spam_count) * 100
-                bar_length = 30
-                filled = int(bar_length * count / spam_count)
-                bar = '█' * filled + '░' * (bar_length - filled)
-                progress_text = f"{percentage:.1f}% {bar}"
-            else:
-                progress_text = "INFINITE MODE"
-            
-            if response.status_code == 200:
-                success_count += 1
-                print(f"  [{count+1:04d}] {timestamp} ✅ {current_msg[:35]}... | {progress_text}")
-                
-            elif response.status_code == 401:
-                print_status("error", "Token invalid! Please check your token.")
-                break
-                
-            elif response.status_code == 403:
-                print_status("error", "Permission denied in this channel!")
-                break
-                
-            elif response.status_code == 429:
-                error_count += 1
-                print_status("warning", f"Rate limit! Waiting 5 seconds... (Error #{error_count})")
-                time.sleep(5)
-                continue
-                
-            elif response.status_code == 400:
-                print_status("error", "Bad request! Message might be empty or too long")
-                break
-                
-            else:
-                error_count += 1
-                print(f"  [{count+1:04d}] ❌ Error {response.status_code} | {progress_text}")
-                if error_count > 10:
-                    print_status("error", "Too many errors! Stopping...")
-                    break
-            
-            count += 1
-            
-            # Wait for next message
-            if interval < 0.05:
-                time.sleep(0.05)  # Minimum 50ms delay to prevent crash
-            else:
-                time.sleep(interval)
-            
-    except KeyboardInterrupt:
-        print("\n\n" + "═" * 60)
-        print_status("info", f"👋 Stopped by user!")
-        print_status("success", f"📊 Total sent: {success_count} | Errors: {error_count}")
-        print("═" * 60 + "\n")
+    # Start spamming
+    if multi_mode == '1':
+        send_messages_round_robin(accounts, messages, interval, spam_count, spam_mode)
+    else:
+        send_messages_parallel(accounts, messages, interval, spam_count, spam_mode)
 
 if __name__ == "__main__":
     main()
