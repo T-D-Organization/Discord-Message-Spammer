@@ -19,7 +19,7 @@
 ### Discord-Message-Spammer
 
 📌 REQUIREMENTS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 • Windows OS (7/10/11)
 • Kali Linux
@@ -27,7 +27,7 @@
 • Discord account (for tokens)
 • Python 3.8 or higher (if not already installed)
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ## This Tool Tested On :
 <ul>
@@ -36,7 +36,7 @@
   <li>Windows</li>
 </ul>
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ---
 
 ## 📌 Features
@@ -74,7 +74,7 @@ python messager.py
    ✅ The tool will now start running.
 
 ### 📜 LICENSE REMINDER
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 This tool is EXCLUSIVELY for Chat Spaming
 ❌ No one may change, edit, or modify this tool.
@@ -85,11 +85,11 @@ This tool is EXCLUSIVELY for Chat Spaming
 See LICENSE file for full terms.
 📞 SUPPORT
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 For BLADE support:
 • Read this README fully first
 • Join[ https://discord.gg/Qs3jQ7zeah](https://discord.gg/Qs3jQ7zeah) for any issue
 • Contact tool author directly (ROOT & BLADE)
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
