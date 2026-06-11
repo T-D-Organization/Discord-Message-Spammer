@@ -108,7 +108,7 @@ See LICENSE file for full terms.
 
 For BLADE support:
 • Read this README fully first
-• Join[ https://discord.gg/Qs3jQ7zeah](https://discord.gg/Qs3jQ7zeah) for any issue
+• Join [ https://discord.gg/bUPqSj8VzR ](https://discord.gg/bUPqSj8VzR) for any issue
 • Contact tool author directly (ROOT & BLADE)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
