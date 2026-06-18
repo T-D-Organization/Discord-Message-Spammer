@@ -109,6 +109,6 @@ See LICENSE file for full terms.
 For BLADE support:
 • Read this README fully first
 • Join [ https://discord.gg/bUPqSj8VzR ](https://discord.gg/bUPqSj8VzR) for any issue
-• Contact tool author directly (ROOT & BLADE)
+• Contact tool author directly (𝐍𝐄𝐗𝐔𝐒 & 𝐗𝐘𝐓𝐇𝐄𝐑)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
