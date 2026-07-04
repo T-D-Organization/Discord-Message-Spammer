@@ -24,7 +24,8 @@ T-D Organistaion (Team Dark)
 
 
 <div align="center">
-  
+
+[![Discord](https://img.shields.io/badge/Discord-%237289DA.svg?logo=discord&logoColor=white)](https://discord.gg/https://discord.gg/https://discord.gg/bUPqSj8VzR)  
 ![Python](https://img.shields.io/badge/Language-Python-red?style=for-the-badge&logo=gnu-Python)
 ![Linux](https://img.shields.io/badge/Platform-Linux&Windows-blue?style=for-the-badge&logo=Linux&Windows)
 ![GitHub](https://img.shields.io/badge/GitHub-more--dark-black?style=for-the-badge&logo=github)
