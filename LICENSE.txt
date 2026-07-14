@@ -5,7 +5,7 @@
 
 ONLY for Pentesting.
 
-📅 Copyright (c) 2026 [MADE BY Root & Blade]
+📅 Copyright (c) 2026 [MADE BY NEXUS & EGON]
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
