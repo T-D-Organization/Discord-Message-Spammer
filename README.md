@@ -75,7 +75,7 @@ T-D Organistaion (Team Dark)
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/more-dark/Discord-Message-Spammer.git
+git clone https://github.com/T-D-Organization/Discord-Message-Spammer
 cd Discord-Message-Spammer
 ```
 ### For Windows
